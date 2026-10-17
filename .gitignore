@@ -1,0 +1,28 @@
+# Go
+/bin/
+/dist/
+*.test
+*.out
+coverage.*
+
+# Local data
+/data/
+/tmp/
+*.db
+*.db-wal
+*.db-shm
+.env
+
+# Frontend
+node_modules/
+web/dist/
+web/coverage/
+web/test-results/
+web/playwright-report/
+web/blob-report/
+*.tsbuildinfo
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
