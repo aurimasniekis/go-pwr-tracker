@@ -22,6 +22,11 @@ updates:
       runtime:
         dependency-type: production
         update-types: [minor, patch]
+    ignore:
+      # typescript-eslint supports typescript <6.1; bump TypeScript's major
+      # together with typescript-eslint once it supports the new version.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
@@ -35,6 +40,11 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # Stay on Node.js LTS lines (even majors); move to the next LTS manually
+      # together with the node-version used in the workflows.
+      - dependency-name: node
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: docker-compose
     directory: /
