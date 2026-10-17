@@ -9,7 +9,7 @@ services:
       context: .
       args:
         VERSION: ${VERSION:-dev}
-    image: ghcr.io/aurimasniekis/go-pwr-tracker:${IMAGE_TAG:-local}
+    image: ghcr.io/aurimasniekis/pwr-tracker:${IMAGE_TAG:-local}
     restart: unless-stopped
     ports:
       - "${PWR_PORT:-8080}:8080"
