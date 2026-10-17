@@ -1,0 +1,44 @@
+# Default stack: the app only. FlareSolverr is opt-in:
+#   docker compose --profile flaresolverr up -d
+# and set FETCH_MODE=flaresolverr (see .env.example).
+name: pwr-tracker
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        VERSION: ${VERSION:-dev}
+    image: ghcr.io/aurimasniekis/go-pwr-tracker:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    ports:
+      - "${PWR_PORT:-8080}:8080"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_PATH: /data/pwr-tracker.db
+      LISTEN_ADDR: ":8080"
+    volumes:
+      - pwr-data:/data
+    stop_grace_period: 20s
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  flaresolverr:
+    profiles: ["flaresolverr"]
+    image: ghcr.io/flaresolverr/flaresolverr:v3.5.2
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: info
+      TZ: UTC
+    # No published ports: reachable only from the app as http://flaresolverr:8191.
+    # FlareSolverr must never be exposed to the internet.
+    expose:
+      - "8191"
+
+volumes:
+  pwr-data:
