@@ -226,19 +226,28 @@ func (f *FlareSolverrFetcher) Fetch(ctx context.Context) ([]byte, error) {
 	return body, nil
 }
 
-var preRe = regexp.MustCompile(`(?is)<pre[^>]*>(.*?)</pre>`)
+var (
+	preRe  = regexp.MustCompile(`(?is)<pre[^>]*>(.*?)</pre>`)
+	bodyRe = regexp.MustCompile(`(?is)<body[^>]*>(.*?)</body>`)
+)
 
 // extractBody returns the upstream payload from a FlareSolverr solution.
-// FlareSolverr drives a real browser and returns the rendered document, so a
-// JSON response usually arrives wrapped as <html>…<pre>{json}</pre>…</html>
-// with HTML escaping applied. A bare JSON body is returned unchanged.
+// FlareSolverr drives a real browser and returns the serialized DOM, not
+// the raw response. Because the upstream labels its JSON as text/html, the
+// browser renders it as <html><head></head><body>{json}</body></html>
+// (verified against FlareSolverr v3.5.2; see testdata/flaresolverr_ok.json).
+// A response served as application/json would instead appear inside <pre>.
+// Text content is HTML-escaped by the serializer, so it is unescaped here;
+// a bare JSON body is returned unchanged.
 func extractBody(resp string) []byte {
 	t := strings.TrimSpace(resp)
 	if strings.HasPrefix(t, "{") || strings.HasPrefix(t, "[") {
 		return []byte(t)
 	}
-	if m := preRe.FindStringSubmatch(t); m != nil {
-		return []byte(strings.TrimSpace(html.UnescapeString(m[1])))
+	for _, re := range []*regexp.Regexp{preRe, bodyRe} {
+		if m := re.FindStringSubmatch(t); m != nil {
+			return []byte(strings.TrimSpace(html.UnescapeString(m[1])))
+		}
 	}
 	return []byte(t)
 }

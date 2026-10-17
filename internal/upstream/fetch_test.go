@@ -155,6 +155,40 @@ func TestFlareSolverrRequestShapeAndHTMLWrappedJSON(t *testing.T) {
 	}
 }
 
+// TestFlareSolverrRealEnvelope replays a response captured from FlareSolverr
+// v3.5.2 for the real upstream (cookies removed): the JSON is rendered as the
+// text of <body>, not inside <pre>.
+func TestFlareSolverrRealEnvelope(t *testing.T) {
+	envelope, err := os.ReadFile("testdata/flaresolverr_ok.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(envelope)
+	}))
+	defer srv.Close()
+
+	body, err := NewFlareSolverrFetcher(srv.URL, "https://u.test/", time.Second, 64*1024).Fetch(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	it, err := Parse(body, time.UTC, time.Date(2026, 10, 17, 19, 32, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatalf("parse extracted body %q: %v", body, err)
+	}
+	if it.UID != "3086840" || it.Artist != "Jamback" || it.Title != "Positive" {
+		t.Fatalf("got %+v", it)
+	}
+}
+
+func TestExtractBodyUnescapesBodyText(t *testing.T) {
+	got := extractBody(`<html><head></head><body>{"artistName":"A &amp; B","songTitle":"&lt;3"}</body></html>`)
+	if string(got) != `{"artistName":"A & B","songTitle":"<3"}` {
+		t.Fatalf("got %s", got)
+	}
+}
+
 func TestFlareSolverrBareJSON(t *testing.T) {
 	srv := fakeSolver(t, func(solverRequest) (int, any) {
 		return 200, okSolution(200, ` {"songTitle":"x"} `, nil)
