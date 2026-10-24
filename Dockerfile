@@ -36,7 +36,7 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
 
 # distroless/static: CA certificates and tzdata included, no shell, runs as
 # uid 65532. The binary also embeds Go's tzdata as a fallback.
-FROM gcr.io/distroless/static-debian13:nonroot@sha256:e2e927ec666bae08560abb3c55d0659eceabb657f56b6782ab500a9fc7f555e3
+FROM gcr.io/distroless/static-debian13:nonroot@sha256:18f4cc26c9ffa7f20a359298be7deadac5c607c8e03a02b8119f1a5fc2f82c99
 LABEL org.opencontainers.image.title="pwr-tracker" \
       org.opencontainers.image.description="Power Hit Radio airplay tracker" \
       org.opencontainers.image.source="https://github.com/aurimasniekis/go-pwr-tracker" \
